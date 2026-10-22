@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Network Intrusion Detection | Random Forest &amp; DNN</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Machine Learning Project &middot; B.Tech CSE &middot; KLH</p>
+      <h1>Network Intrusion Detection</h1>
+      <p class="sub">Classifying network connections as <b>normal</b> or <b>anomaly</b> using a
+        Random Forest and a Deep Neural Network trained on the NSL-KDD dataset.</p>
+    </div>
+  </header>
+
+  <nav class="tabs wrap" id="tabs">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="detect">Live Detection</button>
+    <button class="tab" data-tab="batch">Batch Analysis</button>
+    <button class="tab" data-tab="about">About</button>
+  </nav>
+
+  <main class="wrap">
+    <!-- OVERVIEW -->
+    <section id="overview" class="panel active">
+      <div id="kpis" class="kpis"></div>
+
+      <div class="card">
+        <h2>Model comparison <span class="muted">(held-out test set)</span></h2>
+        <div id="metricsTable"></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card"><h2>Confusion matrix &ndash; Random Forest</h2><div id="cmRf"></div></div>
+        <div class="card"><h2>Confusion matrix &ndash; Deep Neural Network</h2><div id="cmDnn"></div></div>
+      </div>
+
+      <div class="grid2">
+        <div class="card"><h2>ROC curves</h2><div id="roc"></div></div>
+        <div class="card"><h2>Top 15 features (Random Forest)</h2><div id="importance"></div></div>
+      </div>
+    </section>
+
+    <!-- LIVE DETECTION -->
+    <section id="detect" class="panel">
+      <div class="card">
+        <h2>Analyse a single connection</h2>
+        <p class="muted">Load a real connection from the unseen test data, tweak any value, then run both models.</p>
+        <div class="btnrow">
+          <button class="btn" id="btnNormal">Load random normal sample</button>
+          <button class="btn danger" id="btnAttack">Load random attack sample</button>
+          <button class="btn ghost" id="btnAny">Random sample</button>
+        </div>
+        <div id="sampleNote" class="note hidden"></div>
+        <div id="formGroups"></div>
+        <button class="btn primary big" id="btnAnalyze">Analyse connection</button>
+        <div id="formError" class="error hidden"></div>
+      </div>
+      <div id="result" class="hidden"></div>
+    </section>
+
+    <!-- BATCH -->
+    <section id="batch" class="panel">
+      <div class="card">
+        <h2>Analyse a CSV file of connections</h2>
+        <p class="muted">The CSV needs the 41 feature columns (same names as <code>Train_data.csv</code>).
+          A <code>class</code> column is optional &ndash; if present, accuracy is calculated too.</p>
+        <div class="btnrow">
+          <input type="file" id="csvFile" accept=".csv">
+          <button class="btn primary" id="btnBatch">Analyse file</button>
+          <button class="btn" id="btnDownload">Download predictions CSV</button>
+          <a class="btn ghost" href="/api/sample_csv">Get a sample CSV to try</a>
+        </div>
+        <div id="batchError" class="error hidden"></div>
+      </div>
+      <div id="batchResult" class="hidden"></div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="about" class="panel">
+      <div class="card">
+        <h2>How it works</h2>
+        <ol class="steps">
+          <li><b>Dataset:</b> NSL-KDD (<code>Train_data.csv</code>) &ndash; 25,192 connection records, 41 features, label <code>normal</code> / <code>anomaly</code>.</li>
+          <li><b>Preprocessing:</b> categorical features (<code>protocol_type</code>, <code>service</code>, <code>flag</code>) are label-encoded; all features are standardised with <code>StandardScaler</code> (fit on the training split only).</li>
+          <li><b>Split:</b> 80% train / 20% test, stratified so both keep the same normal/anomaly ratio.</li>
+          <li><b>Random Forest:</b> 200 decision trees voting together; gives interpretable feature importances.</li>
+          <li><b>Deep Neural Network:</b> dense layers 128 &rarr; 64 &rarr; 32 &rarr; 1 (sigmoid), dropout 0.3, Adam optimiser, early stopping. <span id="backendNote"></span></li>
+          <li><b>Prediction:</b> each model outputs a probability that the connection is an intrusion; &ge; 50% is flagged as <b>anomaly</b>.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h2>API endpoints</h2>
+        <table class="table">
+          <tr><td><code>GET /api/summary</code></td><td>Dataset info, metrics, confusion matrices, ROC, feature importances</td></tr>
+          <tr><td><code>GET /api/sample?label=normal|anomaly</code></td><td>Random real connection from the test split</td></tr>
+          <tr><td><code>POST /api/predict</code></td><td>JSON <code>{"features": {...}}</code> &rarr; RF and DNN probabilities</td></tr>
+          <tr><td><code>POST /api/predict_csv</code></td><td>Upload a CSV &rarr; predictions for every row</td></tr>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer class="wrap foot">Network Intrusion Detection Using Random Forest and Deep Neural Networks &middot; Department of CSE, KLH</footer>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

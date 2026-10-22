@@ -1,0 +1,8 @@
+flask>=3.0
+pandas>=2.0
+numpy>=1.24
+scikit-learn>=1.3
+joblib>=1.3
+# The Deep Neural Network uses TensorFlow/Keras. If TensorFlow will not install on your
+# machine, use requirements-lite.txt instead (the app then uses scikit-learn's MLP).
+tensorflow>=2.15
